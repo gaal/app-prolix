@@ -1,0 +1,77 @@
+#!/usr/bin/perl -w
+package main; # work around old Pod::Weaver::Section::Version bug.
+# ABSTRACT: trim chatty command outputs
+# PODNAME: prolix
+
+use strict;
+use warnings;
+
+use App::Prolix;
+
+my $prolix = App::Prolix->new_with_options();
+$prolix->_cmd($prolix->extra_argv);
+$prolix->run;
+
+__END__
+=head1 SYNOPSIS
+
+  # Run spammy_command and log its output, but week out some output
+  prolix -s '(spam)' -l auto -- spammy_command cmd_opt1 cmd_opt2
+
+  # While it's running, hit enter and add another ignore term at the
+  # interactive prompt
+  prolix> ignore_substring (more spam)
+
+
+  # Weed uninteresting fields out of a log file
+  tail -f error.log | prolix -s 's/^\[(.*?\] ){3}//'
+
+=head1 DESCRIPTION
+
+B<prolix> launches a command and captures its standard output and
+error. It suppresses uninteresting lines. Unlike C<grep -v>, it is an
+interactive program; hit B<enter> to add suppression patterns as new
+anoyances come up on your terminal. You can weed out by full or substring
+line matches, as well as regexp. You can also apply substitutions to
+lines, for example shorten overly chatty fields.
+
+prolix can be configured to automatically store a filtered log of
+output from the commands that it captures.
+
+[Planned] You can have prolix remember different profiles for different
+command invocations, so that if you often debug a server, prolix (which
+knows your command line) will identify what ignore/snippet patterns to
+apply to it.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc App::Prolix
+
+You can also contact the maintainer at the address above or look for
+information at:
+
+=over 4
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/App-Prolix/>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/App-Prolix/>
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=App-Prolix>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/App-Prolix/>
+
+=item * Source repository
+
+L<https://github.com/gaal/app-prolix>
+
+=back

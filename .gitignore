@@ -1,0 +1,6 @@
+.*sw?
+.bak
+App-Prolix-*/
+App-Prolix-*tar.gz
+*.bak
+*.old
