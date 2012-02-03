@@ -15,15 +15,17 @@ $prolix->run;
 __END__
 =head1 SYNOPSIS
 
-  # Run spammy_command and log its output, but week out some output
-  prolix -s '(spam)' -l auto -- spammy_command cmd_opt1 cmd_opt2
+  # Run spammy_command and log its output, but weed out some output
+  prolix -b '(spam)' -l auto -- spammy_command cmd_opt1 cmd_opt2
 
   # While it's running, hit enter and add another ignore term at the
   # interactive prompt
   prolix> ignore_substring (more spam)
 
 
-  # Weed uninteresting fields out of a log file
+  # Weed uninteresting fields out of a log file.
+  # Pipe mode is not interactive; but it accepts the same filtering
+  # arguments as the full interactive mode.
   tail -f error.log | prolix -s 's/^\[(.*?\] ){3}//'
 
 =head1 DESCRIPTION
@@ -38,10 +40,94 @@ lines, for example shorten overly chatty fields.
 prolix can be configured to automatically store a filtered log of
 output from the commands that it captures.
 
+When running in a pipeline, prolix can't interact with you, but it
+does accept the same command line parameters, so it acts like a replacement
+for C<sed>, C<grep -v>, and C<grep -E -v>.
+
 [Planned] You can have prolix remember different profiles for different
 command invocations, so that if you often debug a server, prolix (which
 knows your command line) will identify what ignore/snippet patterns to
 apply to it.
+
+=head1 OPTIONS
+
+Normally you will run prolix with:
+
+    prolix [PROLIX OPTIONS] -- somecommand [COMMAND OPTIONS]
+
+You can also put prolix in a pipeline.
+
+    somecommand | prolix [PROLIX OPTIONS]
+
+=over 4
+
+=item -v, --verbose
+
+When specified, C<prolix> will add some output of its own, for example
+saying it's in pipe mode.
+
+BUG(gaal): Due to a series of unfortunate events, C<-v> currently
+confuses modules we rely on to parse the command line. A patch has been
+sent; with luck this will be resolved soon.
+
+=item -p, --pipe
+
+Force pipe mode. 
+
+=item -l, --log=FILENAME
+
+Log filtered output to FILENAME. If the argument looks like a pathname
+(contains a "/"), we'll use that. Otherwise, the output will go to the
+temporary directory (as defined by File::Spec->tmpdir).
+
+The special value "auto" lets prolix pick a filename based on the command
+being run.
+
+The substring "%d" is expanded to a timestamp in a path-friendly variation
+of iso8601. More substitutions may be added in the future.
+
+=item -r, --ignore-re=REGEXP
+
+Ignore files matching REGEXP. This is case-sensitive; use C<(?i:...)> to
+ignore case. (-i may be added in the future.)
+
+=item -n, --ignore-line=LINE
+
+Ignore complete matches on LINE.
+
+=item -b, --ignore-substring=SUBSTRING
+
+Ignore lines containing SUBSTRING.
+
+=item -s, --snippet=s/SEARCH_RE/REPLACE/
+
+Transform lines by applying a Perl substitution on them. Useful, for example,
+in getting rid of uninteresting fields in a logfile.
+
+Here, modifiers C</i>, C</g>, and C</x> are honored. You can also use
+alternate delimiters instead of C</>, including balanced ones (C<s{a}{b}>.)
+
+We'll add facilities for doing this in a more convenient way for structured
+lines in future versions. (For example, CSV or Apache CLF.)
+
+=back
+
+=head1 INTERACTIVE MODE
+
+When C<prolix> launches a program itself (as opposed to pipe mode),
+pressing B<enter> pauses the display of output from the program, and
+you're dropped into a prompt. Here you can add more patterns to ignore
+or apply new snippetting rules. These will take effect on subsequent output.
+Blank input returns you to the normal running of the command.
+
+The interactive mode has a "help" command listing available commands. Those
+that add new filters follow the long command line options. So for example,
+saying "ignore_substring temptation" will ignore all lines containing
+"temptation".
+
+You can also say "pats" to list all patterns in effect, and "clear_all"
+to remove them. (Removing a particular rule is not supported but we can
+add it if it is requested.)
 
 =head1 SUPPORT
 

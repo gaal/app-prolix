@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Getopt::Long qw(:config no_auto_version);
 
 package App::Prolix;
 # ABSTRACT: trim chatty command outputs
@@ -37,7 +38,6 @@ use Try::Tiny;
 
 use App::Prolix::MooseHelpers;
 
-with "App::Prolix::ConfigFileRole";
 with "MooseX::Getopt";
 
 # Flags affecting overall run style.
@@ -45,13 +45,15 @@ has_option "verbose" => (isa => "Bool", cmd_aliases => "v",
     documentation => "Prints extra information.");
 has_option "pipe" => (isa => "Bool", cmd_aliases => "p",
     documentation => "Reads from stdin instead of interactively.");
-has_option "log" => (isa => "Str", cmd_aliases => "l");
+has_option "log" => (isa => "Str", cmd_aliases => "l",
+    documentation => q{Logs output to a filename (say "auto" } .
+        q{to let prolix pick one for you)});
 
 # Flags affecting filtering.
 has_option "ignore_re" => (isa => "ArrayRef", cmd_aliases => "r",
     "default" => sub { [] },
     documentation => "Ignore lines matching this regexp.");
-has_option "ignore_line" => (isa => "ArrayRef", cmd_aliases => "i",
+has_option "ignore_line" => (isa => "ArrayRef", cmd_aliases => "n",
     "default" => sub { [] },
     documentation => "Ignore lines exactly matching this.");
 has_option "ignore_substring" => (isa => "ArrayRef", cmd_aliases => "b",
@@ -180,7 +182,7 @@ sub run_spawn {
         help
         ignore_line
         ignore_re
-        ignore_substr
+        ignore_substring
         pats
         quit
         snippet
@@ -227,6 +229,9 @@ sub try_user_input {
     # Enter interactive prompt mode. We hope this will be brief, and
     # IPC::Run can buffer our watched command in the meanhwile.
 
+	say q{Press ENTER to go back, or enter "help" for a list of commands.}
+		if $self->verbose;
+
     Term::ReadKey::ReadMode("normal");
     while (my $cmd = $self->_term->readline("prolix>")) {
         $self->_term->addhistory($cmd);
@@ -247,7 +252,7 @@ sub handle_user_input {
             when (/h|help/)    { $self->help_interactive }
             when ("pats")      { $self->dump_pats }
             when ("stats")     { say $self->stats }
-            default            { say "unknown command. try 'help'." }
+            default            { say q{Unknown command. Try "help".} }
         }
     } else {
         given ($cmd) {
@@ -260,7 +265,7 @@ sub handle_user_input {
                 push @{ $self->snippet }, $1;
                 $self->import_snippet($1);
             }
-            default { say "unknown command. try 'help'." }
+            default { say q{Unknown command. Try "help".} }
         }
     }
 }
