@@ -66,10 +66,6 @@ You can also put prolix in a pipeline.
 When specified, C<prolix> will add some output of its own, for example
 saying it's in pipe mode.
 
-BUG(gaal): Due to a series of unfortunate events, C<-v> currently
-confuses modules we rely on to parse the command line. A patch has been
-sent; with luck this will be resolved soon.
-
 =item -p, --pipe
 
 Force pipe mode. 
