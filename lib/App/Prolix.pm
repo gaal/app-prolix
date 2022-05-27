@@ -80,6 +80,8 @@ has_rw "_ignore_re" => (isa => "ArrayRef", "default" => sub { [] });
 has_counter "_suppressed";
 has_counter "_output_lines";
 
+no warnings 'experimental::smartmatch';
+
 sub run {
     my($self) = @_;
     
@@ -422,4 +424,4 @@ sub on_out {
     }
 }
 
-6;
+1;

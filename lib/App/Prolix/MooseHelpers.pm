@@ -44,5 +44,5 @@ sub has_counter {
     );
 }
 
-6;
+1;
 
